@@ -103,6 +103,23 @@ public class JellybirdClient : IJellybirdClient
         return result ?? [];
     }
 
+    public async Task<bool> ExistsAsync(string mediaType, string tmdbId, int? season, int? episode, CancellationToken cancellationToken)
+    {
+        var path = $"/api/library/check?type={Uri.EscapeDataString(mediaType)}&tmdb_id={Uri.EscapeDataString(tmdbId)}";
+        if (season is not null)
+        {
+            path += $"&season={season}";
+        }
+
+        if (episode is not null)
+        {
+            path += $"&episode={episode}";
+        }
+
+        var result = await GetJsonAsync<ExistsResponse>(path, null, null, null, cancellationToken).ConfigureAwait(false);
+        return result?.Exists ?? false;
+    }
+
     public async Task<AddTorrentResponse> AddAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
         var (baseUrl, token) = _configProvider();

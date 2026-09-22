@@ -13,7 +13,7 @@
                 </div>
 
                 <!-- ================= Settings tab ================= -->
-                <div id="JbTabSettings">
+                <div id="JbTabSettings" style="display:none;">
                     <form id="JellybirdConfigForm">
                         <div class="verticalSection">
                             <h2>Jellybird connection</h2>
@@ -68,7 +68,7 @@
                 </div>
 
                 <!-- ================= Search tab ================= -->
-                <div id="JbTabSearch" style="display:none;">
+                <div id="JbTabSearch">
                     <p>Search TMDB and add results to your debrid cloud via jellybird. jellybird picks them up on its next sync.</p>
 
                     <div class="inputContainer" style="max-width:32em;display:flex;gap:0.5em;">
@@ -82,10 +82,17 @@
                         <button is="emby-button" type="button" id="JbBackButton" class="raised">&larr; Back</button>
                     </div>
 
-                    <div id="JbResults" class="itemsContainer"></div>
-                    <div id="JbSeasons" class="itemsContainer" style="display:none;"></div>
-                    <div id="JbEpisodes" class="itemsContainer" style="display:none;"></div>
-                    <div id="JbTorrents" class="itemsContainer" style="display:none;"></div>
+                    <!-- No Jellyfin "itemsContainer" class: it computes to
+                         display:flex;flex-wrap:nowrap (a horizontal carousel
+                         row), which pushed both the card grids and the list
+                         rows off-screen with no wrap/scroll. Plain block
+                         divs instead — card() is inline-block (wraps on its
+                         own) and row()/episodeRow() are block (stack on
+                         their own), so no container-level flex is needed. -->
+                    <div id="JbResults"></div>
+                    <div id="JbSeasons" style="display:none;"></div>
+                    <div id="JbEpisodes" style="display:none;"></div>
+                    <div id="JbTorrents" style="display:none;"></div>
                 </div>
             </div>
         </div>

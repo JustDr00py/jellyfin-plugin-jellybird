@@ -18,6 +18,7 @@ export default function (view) {
 
     view.querySelector("#JbTabSettingsBtn").addEventListener("click", function () { showTab("settings"); });
     view.querySelector("#JbTabSearchBtn").addEventListener("click", function () { showTab("search"); });
+    showTab("search"); // Search is the default landing tab, not Settings.
 
     // --- Settings ----------------------------------------------------
 
@@ -134,8 +135,26 @@ export default function (view) {
         });
     }
 
+    // Best-effort "already in library" check — a failure (e.g. jellybird
+    // briefly unreachable) just means no badge, not a visible error; it
+    // doesn't go through apiGet() since it shouldn't ever populate the
+    // status line for a background label check.
+    function checkExists(mediaType, tmdbId, season, episode) {
+        const params = { tmdbId: tmdbId, type: mediaType };
+        if (season !== undefined) params.season = season;
+        if (episode !== undefined) params.episode = episode;
+        const url = ApiClient.getUrl("Jellybird/Library/Check", params);
+        return ApiClient.getJSON(url).catch(function () { return false; });
+    }
+
     function posterUrl(path) {
         return path ? ("https://image.tmdb.org/t/p/w200" + path) : "";
+    }
+
+    // Episode stills are landscape (16:9), unlike posters — a wider TMDB
+    // size looks right scaled down to the thumbnail box in episodeRow().
+    function stillUrl(path) {
+        return path ? ("https://image.tmdb.org/t/p/w300" + path) : "";
     }
 
     function formatBytes(bytes) {
@@ -181,6 +200,29 @@ export default function (view) {
         return div;
     }
 
+    function episodeRow(imgSrc, title, subtitle, buttonText, onClick) {
+        const div = document.createElement("div");
+        div.style.cssText = "display:flex;align-items:center;gap:0.8em;padding:0.6em;border-bottom:1px solid #333;cursor:pointer;";
+        div.innerHTML =
+            '<div style="flex:0 0 120px;width:120px;height:68px;background:#222;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;">' +
+            (imgSrc ? '<img src="' + imgSrc + '" style="width:100%;height:100%;object-fit:cover;" />' : '<span style="font-size:0.75em;opacity:0.5;">No image</span>') +
+            '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+            '<div style="font-weight:bold;">' + title + '</div>' +
+            '<div style="opacity:0.7;font-size:0.9em;">' + (subtitle || "") + '</div>' +
+            '</div>';
+        if (buttonText) {
+            const btn = document.createElement("button");
+            btn.setAttribute("is", "emby-button");
+            btn.className = "raised";
+            btn.textContent = buttonText;
+            btn.style.flex = "0 0 auto";
+            div.appendChild(btn);
+        }
+        div.addEventListener("click", onClick);
+        return div;
+    }
+
     function runSearch() {
         const q = view.querySelector("#JbSearchInput").value.trim();
         if (!q) {
@@ -203,14 +245,27 @@ export default function (view) {
             const dateStr = r.media_type === "tv" ? r.first_air_date : r.release_date;
             const year = dateStr ? dateStr.substring(0, 4) : "";
             const subtitle = (r.media_type === "tv" ? "TV" : "Movie") + (year ? " · " + year : "");
-            container.appendChild(card(posterUrl(r.poster_path), title, subtitle, function () {
+            const cardEl = card(posterUrl(r.poster_path), title, subtitle, function () {
                 state.selected = r;
                 if (r.media_type === "tv") {
                     loadSeasons(r.id);
                 } else {
                     loadTorrents(r.id, "movie", null, null);
                 }
-            }));
+            });
+            container.appendChild(cardEl);
+            // TV shows aren't checked here — "in library" only makes sense
+            // per episode (or a whole season pack), which needs a season
+            // picked first; see the badge added in loadEpisodes() instead.
+            if (r.media_type !== "tv") {
+                checkExists("movie", r.id).then(function (exists) {
+                    if (!exists) return;
+                    const badge = document.createElement("div");
+                    badge.style.cssText = "margin-top:0.3em;color:#4caf50;font-size:0.85em;font-weight:bold;";
+                    badge.textContent = "In library";
+                    cardEl.appendChild(badge);
+                });
+            }
         });
     }
 
@@ -242,15 +297,23 @@ export default function (view) {
             const container = view.querySelector("#JbEpisodes");
             container.innerHTML = "";
             (episodes || []).forEach(function (ep) {
-                container.appendChild(row(
-                    "E" + ep.episode_number + " — " + ep.name,
-                    ep.air_date || "",
-                    "Select",
-                    function () {
-                        loadTorrents(tmdbId, "tv", season, ep.episode_number);
-                    }));
+                const title = "E" + ep.episode_number + " · " + (ep.name || "");
+                const subtitle = [ep.air_date, ep.overview].filter(Boolean).join(" — ");
+                const rowEl = episodeRow(stillUrl(ep.still_path), title, subtitle, "Select", function () {
+                    loadTorrents(tmdbId, "tv", season, ep.episode_number);
+                });
+                container.appendChild(rowEl);
+                checkExists("tv", tmdbId, season, ep.episode_number).then(function (exists) {
+                    if (!exists) return;
+                    const badge = document.createElement("span");
+                    badge.style.cssText = "color:#4caf50;font-size:0.85em;font-weight:bold;margin-left:0.5em;";
+                    badge.textContent = "In library";
+                    // rowEl.children[0] is the thumbnail, [1] is the text
+                    // container, whose [0] is the bold title line.
+                    rowEl.children[1].children[0].appendChild(badge);
+                });
             });
-            setStatus("");
+            setStatus((episodes || []).length ? "" : "No episodes found.");
             pushPanel("JbSeasons", "JbEpisodes");
         });
     }
@@ -289,6 +352,7 @@ export default function (view) {
             media_type: mediaType,
             season: season || undefined,
             episode: episode || undefined,
+            tmdb_id: state.selected ? String(state.selected.id) : undefined,
         };
         const url = ApiClient.getUrl("Jellybird/Add");
         ApiClient.ajax({ type: "POST", url: url, data: JSON.stringify(body), contentType: "application/json" })

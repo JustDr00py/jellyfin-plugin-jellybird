@@ -75,6 +75,18 @@ public class JellybirdController : ControllerBase
         return await Invoke(() => _client.SearchTorrentsAsync(tmdbId, type, season, episode, cancellationToken)).ConfigureAwait(false);
     }
 
+    /// <summary>"Is this TMDB title already in the library" — season/episode are ignored for movies, required for tv.</summary>
+    [HttpGet("Library/Check")]
+    public async Task<ActionResult<bool>> LibraryCheck(
+        [FromQuery] int tmdbId,
+        [FromQuery] string type,
+        [FromQuery] int? season,
+        [FromQuery] int? episode,
+        CancellationToken cancellationToken)
+    {
+        return await Invoke(() => _client.ExistsAsync(type, tmdbId.ToString(System.Globalization.CultureInfo.InvariantCulture), season, episode, cancellationToken)).ConfigureAwait(false);
+    }
+
     [HttpPost("Add")]
     public async Task<ActionResult<AddTorrentResponse>> Add([FromBody] AddTorrentRequest request, CancellationToken cancellationToken)
     {

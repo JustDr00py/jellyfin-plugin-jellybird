@@ -32,4 +32,8 @@ public class AddTorrentRequest
 
     [JsonPropertyName("episode")]
     public int? Episode { get; set; }
+
+    /// <summary>Optional TMDB id, so jellybird can later answer "is this already in the library" for this title.</summary>
+    [JsonPropertyName("tmdb_id")]
+    public string? TmdbId { get; set; }
 }

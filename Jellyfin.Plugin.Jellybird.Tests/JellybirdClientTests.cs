@@ -136,6 +136,30 @@ public class JellybirdClientTests
     }
 
     [Fact]
+    public async Task ExistsAsync_ReturnsTrue_AndBuildsMovieQuery_WithoutSeasonEpisode()
+    {
+        var handler = FakeHttpMessageHandler.Json(HttpStatusCode.OK, """{"exists":true}""");
+        var client = MakeClient(handler);
+
+        var exists = await client.ExistsAsync("movie", "438631", null, null, CancellationToken.None);
+
+        Assert.True(exists);
+        Assert.Equal("http://jellybird:8097/api/library/check?type=movie&tmdb_id=438631", handler.LastRequest!.RequestUri!.ToString());
+    }
+
+    [Fact]
+    public async Task ExistsAsync_BuildsTvQuery_WithSeasonAndEpisode()
+    {
+        var handler = FakeHttpMessageHandler.Json(HttpStatusCode.OK, """{"exists":false}""");
+        var client = MakeClient(handler);
+
+        var exists = await client.ExistsAsync("tv", "1399", 1, 3, CancellationToken.None);
+
+        Assert.False(exists);
+        Assert.Equal("http://jellybird:8097/api/library/check?type=tv&tmdb_id=1399&season=1&episode=3", handler.LastRequest!.RequestUri!.ToString());
+    }
+
+    [Fact]
     public async Task TriggerSyncAsync_TreatsAccepted_AsSuccess_WithoutParsingBody()
     {
         var handler = new FakeHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.Accepted)

@@ -25,4 +25,7 @@ public interface IJellybirdClient
 
     /// <summary>POST /api/add</summary>
     Task<AddTorrentResponse> AddAsync(AddTorrentRequest request, CancellationToken cancellationToken);
+
+    /// <summary>GET /api/library/check?type=&amp;tmdb_id=&amp;season=&amp;episode= — "is this TMDB title already in the library". Season/episode are ignored for movies.</summary>
+    Task<bool> ExistsAsync(string mediaType, string tmdbId, int? season, int? episode, CancellationToken cancellationToken);
 }
