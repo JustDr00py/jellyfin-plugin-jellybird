@@ -1,0 +1,23 @@
+---
+name: "Jellybird"
+guid: "23ba68d8-75e0-4f79-b5ea-348ad0e3214f"
+version: "1.0.0.0"
+targetAbi: "12.0.0.0"
+framework: "net10.0"
+overview: "Trigger jellybird syncs and search/add debrid content from inside Jellyfin."
+description: >
+  Thin connector plugin for jellybird (https://github.com/JustDr00py/jellybird).
+  jellybird runs as a standalone service that writes .strm files for
+  debrid-hosted (RealDebrid/TorBox) content; this plugin adds a Jellyfin
+  scheduled task to trigger an on-demand sync, and a dashboard page to
+  search TMDB and add results to the debrid cloud, both by calling
+  jellybird's existing REST API. It does not duplicate jellybird's own
+  logic or touch the Jellyfin media library directly.
+category: "General"
+owner: "JustDr00py"
+artifacts:
+  - "Jellyfin.Plugin.Jellybird.dll"
+changelog: |
+  ## v1.0.0.0
+  - Initial release: sync-trigger scheduled task, search/add dashboard page,
+    config page with Test Connection.

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Jellybird</title>
+</head>
+<body>
+    <div id="JellybirdConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox" data-controller="__plugin/jellybirdjs">
+        <div data-role="content">
+            <div class="content-primary">
+                <div class="je-tab-bar" style="margin-bottom:1em;">
+                    <button is="emby-button" type="button" class="raised" id="JbTabSettingsBtn">Settings</button>
+                    <button is="emby-button" type="button" class="raised" id="JbTabSearchBtn">Search</button>
+                </div>
+
+                <!-- ================= Settings tab ================= -->
+                <div id="JbTabSettings">
+                    <form id="JellybirdConfigForm">
+                        <div class="verticalSection">
+                            <h2>Jellybird connection</h2>
+                            <p>
+                                jellybird syncs on its own schedule (see its <code>sync.interval</code> config,
+                                default 10 minutes). The "Trigger Sync" scheduled task under
+                                Dashboard &rarr; Scheduled Tasks &rarr; Jellybird only asks jellybird to sync
+                                <em>right now</em> — it isn't required for jellybird to function.
+                            </p>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="JellybirdBaseUrl">Jellybird base URL</label>
+                                <input id="JellybirdBaseUrl" name="JellybirdBaseUrl" type="url" is="emby-input" placeholder="http://jellybird:8097 or http://192.168.1.50:8097" />
+                                <div class="fieldDescription">
+                                    Docker compose example: <code>http://jellybird:8097</code> (compose service name).
+                                    Bare-metal/LAN example: <code>http://192.168.1.50:8097</code>.
+                                </div>
+                            </div>
+
+                            <div class="inputContainer">
+                                <label class="inputLabel inputLabelUnfocused" for="JellybirdToken">Jellybird token</label>
+                                <input id="JellybirdToken" name="JellybirdToken" type="password" is="emby-input" autocomplete="off" />
+                                <div class="fieldDescription">
+                                    Matches jellybird's own <code>server.token</code> config. Leave blank if jellybird has no token set (auth disabled).
+                                </div>
+                            </div>
+
+                            <div class="selectContainer">
+                                <label class="selectLabel" for="DefaultProvider">Default provider (optional)</label>
+                                <select id="DefaultProvider" name="DefaultProvider" is="emby-select">
+                                    <option value="">No preference</option>
+                                    <option value="realdebrid">RealDebrid</option>
+                                    <option value="torbox">TorBox</option>
+                                </select>
+                                <div class="fieldDescription">
+                                    Pre-selects the provider on the Search tab. jellybird still treats this as an optional preference, not a restriction.
+                                </div>
+                            </div>
+
+                            <div style="display:flex;align-items:center;gap:1em;">
+                                <button is="emby-button" type="button" id="TestConnectionButton" class="raised button-submit block">Test Connection</button>
+                                <span id="TestConnectionResult"></span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button is="emby-button" type="submit" class="raised button-submit block">
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- ================= Search tab ================= -->
+                <div id="JbTabSearch" style="display:none;">
+                    <p>Search TMDB and add results to your debrid cloud via jellybird. jellybird picks them up on its next sync.</p>
+
+                    <div class="inputContainer" style="max-width:32em;display:flex;gap:0.5em;">
+                        <input id="JbSearchInput" type="text" is="emby-input" placeholder="Search movies and TV shows…" style="flex:1;" />
+                        <button is="emby-button" type="button" id="JbSearchButton" class="raised button-submit">Search</button>
+                    </div>
+
+                    <div id="JbStatus" style="margin:1em 0;"></div>
+
+                    <div id="JbBreadcrumb" style="display:none;margin-bottom:1em;">
+                        <button is="emby-button" type="button" id="JbBackButton" class="raised">&larr; Back</button>
+                    </div>
+
+                    <div id="JbResults" class="itemsContainer"></div>
+                    <div id="JbSeasons" class="itemsContainer" style="display:none;"></div>
+                    <div id="JbEpisodes" class="itemsContainer" style="display:none;"></div>
+                    <div id="JbTorrents" class="itemsContainer" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- No inline <script> here on purpose: Jellyfin's SPA only executes a
+         plugin page's script via a jQuery-based insertion path, which this
+         install doesn't reliably exercise. All interactivity lives in
+         jellybird.js instead, loaded through the proven data-controller
+         mechanism above (see PluginPageInfo "jellybirdjs" in Plugin.cs). -->
+</body>
+</html>
