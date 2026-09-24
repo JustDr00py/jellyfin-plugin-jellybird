@@ -63,3 +63,11 @@ dotnet test
 `Jellyfin.Plugin.Jellybird.Tests` exercises `JellybirdClient` against an
 in-process fake `HttpMessageHandler` — no real network calls, no running
 Jellyfin server required.
+
+## License
+
+This plugin is licensed under the
+[GNU General Public License v3.0](LICENSE). It builds against Jellyfin's
+`Jellyfin.Controller` / `Jellyfin.Model` packages, which are
+GPL-3.0-only, so the plugin is GPL-3.0 as well. jellybird itself is also
+[GPL-3.0](https://github.com/JustDr00py/jellybird).
