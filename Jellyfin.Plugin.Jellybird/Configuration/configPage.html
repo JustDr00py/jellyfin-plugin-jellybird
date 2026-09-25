@@ -8,8 +8,11 @@
         <div data-role="content">
             <div class="content-primary">
                 <div class="je-tab-bar" style="margin-bottom:1em;">
-                    <button is="emby-button" type="button" class="raised" id="JbTabSettingsBtn">Settings</button>
-                    <button is="emby-button" type="button" class="raised" id="JbTabSearchBtn">Search</button>
+                    <button is="emby-button" type="button" class="raised" data-tab="discover">Discover</button>
+                    <button is="emby-button" type="button" class="raised" data-tab="search">Search</button>
+                    <button is="emby-button" type="button" class="raised" data-tab="cloud">Cloud</button>
+                    <button is="emby-button" type="button" class="raised" data-tab="local">Local files</button>
+                    <button is="emby-button" type="button" class="raised" data-tab="settings">Settings</button>
                 </div>
 
                 <!-- ================= Settings tab ================= -->
@@ -67,15 +70,37 @@
                     </form>
                 </div>
 
+                <!-- ================= Discover tab ================= -->
+                <div id="JbTabDiscover" style="display:none;">
+                    <p>Browse what's trending or popular on TMDB. Titles already in your library are marked; pick one to add it via jellybird.</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.8em;align-items:center;margin-bottom:0.5em;">
+                        <select id="JbDiscoverType" is="emby-select" aria-label="Media type" style="width:auto;">
+                            <option value="movie">Movies</option>
+                            <option value="tv">TV shows</option>
+                        </select>
+                        <select id="JbDiscoverList" is="emby-select" aria-label="List" style="width:auto;"></select>
+                        <select id="JbDiscoverGenre" is="emby-select" aria-label="Genre" style="width:auto;">
+                            <option value="">Any genre</option>
+                        </select>
+                        <label style="display:flex;align-items:center;gap:0.4em;">
+                            <input type="checkbox" id="JbDiscoverHide" /> Hide what I have
+                        </label>
+                    </div>
+                </div>
+
                 <!-- ================= Search tab ================= -->
-                <div id="JbTabSearch">
+                <div id="JbTabSearch" style="display:none;">
                     <p>Search TMDB and add results to your debrid cloud via jellybird. jellybird picks them up on its next sync.</p>
 
                     <div class="inputContainer" style="max-width:32em;display:flex;gap:0.5em;">
                         <input id="JbSearchInput" type="text" is="emby-input" placeholder="Search movies and TV shows…" style="flex:1;" />
                         <button is="emby-button" type="button" id="JbSearchButton" class="raised button-submit">Search</button>
                     </div>
+                </div>
 
+                <!-- Shared by Discover and Search: results, then the
+                     seasons → episodes → torrents drill-down. -->
+                <div id="JbBrowse" style="display:none;">
                     <div id="JbStatus" style="margin:1em 0;"></div>
 
                     <div id="JbBreadcrumb" style="display:none;margin-bottom:1em;">
@@ -90,9 +115,37 @@
                          own) and row()/episodeRow() are block (stack on
                          their own), so no container-level flex is needed. -->
                     <div id="JbResults"></div>
+                    <div id="JbDiscoverResults" style="display:none;">
+                        <div id="JbDiscoverGrid"></div>
+                        <div style="margin:1em 0;display:flex;align-items:center;gap:1em;">
+                            <button is="emby-button" type="button" id="JbDiscoverMore" class="raised" style="display:none;">Load more</button>
+                            <span id="JbDiscoverCount" style="opacity:0.7;"></span>
+                        </div>
+                    </div>
                     <div id="JbSeasons" style="display:none;"></div>
                     <div id="JbEpisodes" style="display:none;"></div>
                     <div id="JbTorrents" style="display:none;"></div>
+                </div>
+
+                <!-- ================= Cloud tab ================= -->
+                <div id="JbTabCloud" style="display:none;">
+                    <p>Everything in your debrid cloud. <strong>Keep local</strong> downloads a torrent's library files onto the jellybird server for offline playback; <strong>Delete</strong> removes it from your debrid and from the library.</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.8em;align-items:center;margin-bottom:0.5em;">
+                        <input id="JbCloudFilter" type="search" is="emby-input" placeholder="Filter by name…" style="max-width:24em;" />
+                        <button is="emby-button" type="button" id="JbCloudRefresh" class="raised">Refresh</button>
+                        <span id="JbCloudStatus" style="opacity:0.8;"></span>
+                    </div>
+                    <div id="JbCloudList"></div>
+                </div>
+
+                <!-- ================= Local files tab ================= -->
+                <div id="JbTabLocal" style="display:none;">
+                    <p>Copies kept on the jellybird server so they play without your debrid or the internet. Start one with <strong>Keep local</strong> on the Cloud tab. Removing a copy sends the title back to streaming, unless it's the only copy left.</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:0.8em;align-items:center;margin-bottom:0.5em;">
+                        <button is="emby-button" type="button" id="JbLocalRefresh" class="raised">Refresh</button>
+                        <span id="JbLocalStatus" style="opacity:0.8;"></span>
+                    </div>
+                    <div id="JbLocalList"></div>
                 </div>
             </div>
         </div>

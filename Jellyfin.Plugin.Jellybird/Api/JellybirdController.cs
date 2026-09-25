@@ -93,6 +93,71 @@ public class JellybirdController : ControllerBase
         return await Invoke(() => _client.AddAsync(request, cancellationToken)).ConfigureAwait(false);
     }
 
+    [HttpGet("Discover")]
+    public async Task<ActionResult<DiscoverPage>> Discover(
+        [FromQuery] string type,
+        [FromQuery] string? list,
+        [FromQuery] int? genre,
+        [FromQuery] int? page,
+        CancellationToken cancellationToken)
+    {
+        return await Invoke(() => _client.DiscoverAsync(type, list, genre, page ?? 1, cancellationToken)).ConfigureAwait(false);
+    }
+
+    [HttpGet("Discover/Lists")]
+    public async Task<ActionResult<DiscoverLists>> DiscoverLists([FromQuery] string type, CancellationToken cancellationToken)
+    {
+        return await Invoke(() => _client.GetDiscoverListsAsync(type, cancellationToken)).ConfigureAwait(false);
+    }
+
+    [HttpGet("Cloud")]
+    public async Task<ActionResult<IReadOnlyList<CloudTorrent>>> Cloud(CancellationToken cancellationToken)
+    {
+        return await Invoke(() => _client.ListCloudAsync(cancellationToken)).ConfigureAwait(false);
+    }
+
+    /// <summary>Deletes a torrent from the debrid cloud — irreversible; the page confirms first.</summary>
+    [HttpDelete("Cloud")]
+    public async Task<ActionResult<object>> RemoveCloud([FromQuery] string provider, [FromQuery] string id, CancellationToken cancellationToken)
+    {
+        return await Invoke(() => Done(_client.RemoveCloudAsync(provider, id, cancellationToken))).ConfigureAwait(false);
+    }
+
+    [HttpGet("Local")]
+    public async Task<ActionResult<IReadOnlyList<LocalFile>>> Local(CancellationToken cancellationToken)
+    {
+        return await Invoke(() => _client.ListLocalAsync(cancellationToken)).ConfigureAwait(false);
+    }
+
+    [HttpPost("Local")]
+    public async Task<ActionResult<KeepLocalResponse>> KeepLocal([FromBody] LocalFileRef file, CancellationToken cancellationToken)
+    {
+        return await Invoke(() => _client.KeepLocalAsync(file, cancellationToken)).ConfigureAwait(false);
+    }
+
+    [HttpDelete("Local")]
+    public async Task<ActionResult<object>> RemoveLocal(
+        [FromQuery] string provider,
+        [FromQuery] string torrentId,
+        [FromQuery] string fileId,
+        CancellationToken cancellationToken)
+    {
+        return await Invoke(() => Done(_client.RemoveLocalAsync(provider, torrentId, fileId, cancellationToken))).ConfigureAwait(false);
+    }
+
+    [HttpPost("Local/Move")]
+    public async Task<ActionResult<object>> MoveLocal([FromBody] LocalFileRef file, CancellationToken cancellationToken)
+    {
+        return await Invoke(() => Done(_client.MoveLocalAsync(file, cancellationToken))).ConfigureAwait(false);
+    }
+
+    /// <summary>Gives a body-less client call a small JSON body, so the page can parse every response the same way.</summary>
+    private static async Task<object> Done(Task call)
+    {
+        await call.ConfigureAwait(false);
+        return new { status = "ok" };
+    }
+
     /// <summary>
     /// Runs a client call and maps <see cref="JellybirdApiException"/> to a
     /// consistent <c>{"error": "..."}</c> JSON body so the frontend never

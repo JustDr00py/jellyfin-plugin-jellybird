@@ -10,7 +10,8 @@ description: >
   jellybird runs as a standalone service that writes .strm files for
   debrid-hosted (RealDebrid/TorBox) content; this plugin adds a Jellyfin
   scheduled task to trigger an on-demand sync, and a dashboard page to
-  search TMDB and add results to the debrid cloud, both by calling
+  discover and search TMDB titles, add them to the debrid cloud, and manage
+  the cloud and server-side local copies, all by calling
   jellybird's existing REST API. It does not duplicate jellybird's own
   logic or touch the Jellyfin media library directly.
 category: "General"
@@ -18,6 +19,13 @@ owner: "JustDr00py"
 artifacts:
   - "Jellyfin.Plugin.Jellybird.dll"
 changelog: |
+  ## Unreleased
+  - Discover tab: browse trending/popular/top-rated/genre movies and shows,
+    with in-library labels and a "hide what I have" filter.
+  - Cloud tab: list debrid torrents, Keep local, Delete.
+  - Local files tab: server-side copies with progress, Cancel/Retry/Move/Remove.
+  - Escape TMDB/torrent text before it reaches the page.
+
   ## v1.0.0.0
   - Initial release: sync-trigger scheduled task, search/add dashboard page,
     config page with Test Connection.

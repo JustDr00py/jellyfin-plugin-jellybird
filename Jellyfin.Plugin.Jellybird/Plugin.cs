@@ -29,7 +29,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 
     /// <inheritdoc />
     public override string Description =>
-        "Trigger jellybird syncs and search/add debrid content without leaving Jellyfin.";
+        "Trigger jellybird syncs, discover and add debrid content, and manage your cloud and local copies without leaving Jellyfin.";
 
     /// <summary>
     /// Singleton access so <see cref="Client.JellybirdClient"/>, the

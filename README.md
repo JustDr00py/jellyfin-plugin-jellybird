@@ -3,19 +3,33 @@
 Thin Jellyfin plugin that calls [jellybird](https://github.com/JustDr00py/jellybird)'s
 existing REST API. jellybird keeps doing all the real work (debrid sync,
 TMDB search, Torrentio lookups, `.strm` generation) as a standalone service;
-this plugin just adds two things inside Jellyfin's own admin UI:
+this plugin adds, inside Jellyfin's own admin UI:
 
 - **Trigger Sync** — a scheduled task (Dashboard → Scheduled Tasks →
   Jellybird) that asks jellybird to resync right now. jellybird already
   syncs on its own schedule (its `sync.interval` config); this task has no
   default trigger and is purely for on-demand/chained use.
-- **Search tab** — inside Dashboard → Plugins → Jellybird, a second tab
-  (alongside Settings) to search TMDB and add results to your debrid cloud
-  via jellybird, without leaving Jellyfin. It's a tab on the plugin's one
-  settings page rather than its own sidebar entry — a separate page with a
-  dedicated sidebar link was tried first and doesn't get a working
-  `ApiClient`, since Jellyfin only wires that up for a plugin's single
-  registered settings page.
+- **Tabs on Dashboard → Plugins → Jellybird**:
+  - **Discover** — browse TMDB's trending, popular, top-rated (and more)
+    movies and shows, or any genre. Titles already in your library are
+    marked (shows with an episode count), and *Hide what I have* leaves
+    only what's missing. Pick one to add it, same as Search.
+  - **Search** — search TMDB and add results to your debrid cloud.
+  - **Cloud** — everything in your debrid cloud(s), with **Keep local**
+    (download a torrent's files onto the jellybird server) and **Delete**.
+  - **Local files** — server-side copies with download progress, and
+    Cancel / Retry / Move / Remove.
+  - **Settings** — connection details.
+
+  They're tabs on the plugin's one settings page rather than their own
+  sidebar entries — a separate page with a dedicated sidebar link was tried
+  first and doesn't get a working `ApiClient`, since Jellyfin only wires
+  that up for a plugin's single registered settings page. Saving a local
+  copy to *your own device* isn't here; use jellybird's own Local files
+  page for that.
+
+Discover needs jellybird with `/api/discover` (added alongside this
+version); the other tabs work with any recent jellybird.
 
 Requires **Jellyfin server 12.0.x/12.1.x** (targets `net10.0`, `targetAbi
 12.0.0.0`). It does not touch the Jellyfin media library directly — every

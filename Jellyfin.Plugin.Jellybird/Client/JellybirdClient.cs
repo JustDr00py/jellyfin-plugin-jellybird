@@ -122,17 +122,75 @@ public class JellybirdClient : IJellybirdClient
 
     public async Task<AddTorrentResponse> AddAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
+        return await SendJsonAsync<AddTorrentResponse>(HttpMethod.Post, "/api/add", request, cancellationToken).ConfigureAwait(false)
+            ?? throw new JellybirdApiException("jellybird returned an empty response for /api/add");
+    }
+
+    public async Task<DiscoverPage> DiscoverAsync(string mediaType, string? list, int? genre, int page, CancellationToken cancellationToken)
+    {
+        var path = $"/api/discover?type={Uri.EscapeDataString(mediaType)}&page={page}";
+        path += genre is > 0 ? $"&genre={genre}" : $"&list={Uri.EscapeDataString(list ?? "trending")}";
+        var result = await GetJsonAsync<DiscoverPage>(path, null, null, null, cancellationToken).ConfigureAwait(false);
+        return result ?? new DiscoverPage();
+    }
+
+    public async Task<DiscoverLists> GetDiscoverListsAsync(string mediaType, CancellationToken cancellationToken)
+    {
+        var path = $"/api/discover/lists?type={Uri.EscapeDataString(mediaType)}";
+        var result = await GetJsonAsync<DiscoverLists>(path, null, null, null, cancellationToken).ConfigureAwait(false);
+        return result ?? new DiscoverLists();
+    }
+
+    public async Task<IReadOnlyList<CloudTorrent>> ListCloudAsync(CancellationToken cancellationToken)
+    {
+        var result = await GetJsonAsync<List<CloudTorrent>>("/api/cloud", null, null, null, cancellationToken).ConfigureAwait(false);
+        return result ?? [];
+    }
+
+    public async Task RemoveCloudAsync(string provider, string torrentId, CancellationToken cancellationToken)
+    {
+        var path = $"/api/cloud?provider={Uri.EscapeDataString(provider)}&id={Uri.EscapeDataString(torrentId)}";
+        await SendJsonAsync<object>(HttpMethod.Delete, path, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<LocalFile>> ListLocalAsync(CancellationToken cancellationToken)
+    {
+        var result = await GetJsonAsync<List<LocalFile>>("/api/local", null, null, null, cancellationToken).ConfigureAwait(false);
+        return result ?? [];
+    }
+
+    public async Task<KeepLocalResponse> KeepLocalAsync(LocalFileRef file, CancellationToken cancellationToken)
+    {
+        return await SendJsonAsync<KeepLocalResponse>(HttpMethod.Post, "/api/local", file, cancellationToken).ConfigureAwait(false)
+            ?? new KeepLocalResponse();
+    }
+
+    public async Task RemoveLocalAsync(string provider, string torrentId, string fileId, CancellationToken cancellationToken)
+    {
+        var path = $"/api/local?provider={Uri.EscapeDataString(provider)}&torrent_id={Uri.EscapeDataString(torrentId)}&file_id={Uri.EscapeDataString(fileId)}";
+        await SendJsonAsync<object>(HttpMethod.Delete, path, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task MoveLocalAsync(LocalFileRef file, CancellationToken cancellationToken)
+    {
+        await SendJsonAsync<object>(HttpMethod.Post, "/api/local/move", file, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Sends a request with an optional JSON body using the saved configuration, returning the decoded response.</summary>
+    private async Task<T?> SendJsonAsync<T>(HttpMethod method, string pathAndQuery, object? body, CancellationToken cancellationToken)
+    {
         var (baseUrl, token) = _configProvider();
         var client = _httpClientFactory.CreateClient(ClientName);
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, BuildUri(baseUrl, "/api/add"))
+        using var request = new HttpRequestMessage(method, BuildUri(baseUrl, pathAndQuery));
+        if (body is not null)
         {
-            Content = JsonContent.Create(request, options: JsonOptions),
-        };
-        ApplyToken(httpRequest, token);
-        using var response = await SendAsync(client, httpRequest, cancellationToken, cancellationToken).ConfigureAwait(false);
+            request.Content = JsonContent.Create(body, body.GetType(), options: JsonOptions);
+        }
+
+        ApplyToken(request, token);
+        using var response = await SendAsync(client, request, cancellationToken, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
-        return await ReadJsonAsync<AddTorrentResponse>(response, cancellationToken).ConfigureAwait(false)
-            ?? throw new JellybirdApiException("jellybird returned an empty response for /api/add");
+        return await ReadJsonAsync<T>(response, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<T?> GetJsonAsync<T>(string pathAndQuery, string? explicitBaseUrl, string? explicitToken, TimeSpan? timeout, CancellationToken cancellationToken)
