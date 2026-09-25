@@ -46,9 +46,12 @@ dotnet build -c Release
 1. Build as above.
 2. Copy `Jellyfin.Plugin.Jellybird/bin/Release/net10.0/Jellyfin.Plugin.Jellybird.dll`
    into your Jellyfin config directory under
-   `plugins/Jellybird_1.0.0.0/Jellyfin.Plugin.Jellybird.dll`
-   (the folder name must include the version — that's what Jellyfin's
-   plugin loader expects for a manually-installed plugin).
+   `plugins/Jellybird_1.1.0.0/Jellyfin.Plugin.Jellybird.dll`
+   (with a bare DLL the folder name must include the version — that's
+   where Jellyfin's plugin loader reads it from). If the folder also holds
+   a `meta.json`, Jellyfin takes the version from that instead and the
+   folder can be named anything; jellybird's `plugin/` folder ships one, so
+   its compose file mounts it at a version-less `plugins/Jellybird`.
 3. Restart Jellyfin.
 4. Go to Dashboard → Plugins → Jellybird and set:
    - **Jellybird base URL** — e.g. `http://jellybird:8097` if both run in

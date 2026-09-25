@@ -1,7 +1,7 @@
 ---
 name: "Jellybird"
 guid: "23ba68d8-75e0-4f79-b5ea-348ad0e3214f"
-version: "1.0.0.0"
+version: "1.1.0.0"
 targetAbi: "12.0.0.0"
 framework: "net10.0"
 overview: "Trigger jellybird syncs and search/add debrid content from inside Jellyfin."
@@ -19,7 +19,7 @@ owner: "JustDr00py"
 artifacts:
   - "Jellyfin.Plugin.Jellybird.dll"
 changelog: |
-  ## Unreleased
+  ## v1.1.0.0
   - Discover tab: browse trending/popular/top-rated/genre movies and shows,
     with in-library labels and a "hide what I have" filter.
   - Cloud tab: list debrid torrents, Keep local, Delete.
